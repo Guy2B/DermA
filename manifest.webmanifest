@@ -1,0 +1,24 @@
+{
+  "name": "DermAlidaBeauty",
+  "short_name": "DermAlida",
+  "description": "Personalized Skin Analysis & Beauty Product Advisor",
+  "start_url": "DermAlidaBeauty_v5_ios.html",
+  "display": "standalone",
+  "background_color": "#efd8d1",
+  "theme_color": "#efd8d1",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
