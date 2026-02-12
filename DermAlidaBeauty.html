@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DermAlidaBeauty – v4 (Offline, Single File)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root { --rose:#efd8d1; --gold:#c9a86a; --white:#ffffff; --slate:#3e4a59; --beige:#f7f3ee; --soft-gray:#f5f4f2; --radius:14px; --shadow:0 8px 28px rgba(0,0,0,0.08); --slide-speed:0.5s; }
+*{box-sizing:border-box;} body{margin:0;padding:0;background:var(--white);color:var(--slate);font-family:Inter,system-ui,sans-serif;} h1,h2,h3{font-family:"Playfair Display",serif;}
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.85);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid #ececec;}
+.nav .inner{max-width:1100px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .logo-svg{width:28px;height:28px;}
+.brand .wordmark{font-family:"Playfair Display",serif;font-size:20px;letter-spacing:0.3px}
+.brand .underline{height:2px;background:var(--gold);border-radius:2px;margin-top:4px;width:120px}
+.lang-switch{display:flex;gap:8px;align-items:center}
+.lang-switch button{border:1px solid #ddd;background:#fff;padding:6px 10px;border-radius:8px;cursor:pointer}
+.lang-switch button.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,106,.15)}
+
+#gdprScreen{position:fixed;inset:0;background:rgba(255,255,255,0.95);padding:40px;z-index:9999;display:flex;align-items:center;justify-content:center;} #gdprCard{max-width:560px;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px;}
+.btn{padding:12px 22px;border-radius:10px;border:none;cursor:pointer;font-weight:600;font-size:15px;} .btn-primary{background-image:linear-gradient(90deg,var(--rose),var(--gold));color:white;box-shadow:0 6px 18px rgba(201,168,106,0.35);} .btn-secondary{background:var(--white);border:1px solid #ddd;color:var(--slate);} .btn:disabled{opacity:.6;cursor:not-allowed}
+
+#splash{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;background:radial-gradient(circle at center,#ffffff 50%,rgba(239,216,209,0.25) 100%);} #splashLogo{font-size:50px;font-family:"Playfair Display",serif;margin-bottom:16px;} #splashUnderline{width:260px;height:3px;background:var(--gold);border-radius:3px;margin:0 auto 24px;}
+
+#app{display:none;padding:24px;max-width:1100px;margin:0 auto;}
+.screen{display:none;background:var(--white);padding:24px;border-radius:var(--radius);box-shadow:var(--shadow);animation:slideIn var(--slide-speed) ease;}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+
+#progressWrap{margin:12px 0 20px;} #progressBar{height:6px;width:100%;background:var(--beige);border-radius:6px;overflow:hidden;} #progressFill{height:6px;width:0%;background-image:linear-gradient(90deg,var(--gold),var(--rose));}
+
+label{display:block;font-weight:500;margin-bottom:6px;} input,select,textarea{width:100%;padding:12px;border-radius:10px;border:1px solid #dcdcdc;} textarea{resize:vertical;} .row{display:grid;gap:16px;} .row-2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));} .row-3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+
+#cameraFrame{display:flex;flex-direction:column;align-items:center;gap:12px;} #cameraCircle{position:relative;width:320px;height:320px;border-radius:999px;border:2px solid var(--gold);overflow:hidden;background:#000;box-shadow:var(--shadow);} video,canvas,#photoPreview{width:100%;height:100%;object-fit:cover;} #photoPreview{display:none;border-radius:999px;} #lightWarning{background:#d06565;color:white;padding:6px 12px;border-radius:6px;margin-top:10px;display:none;}
+
+.accordion{border:1px solid #ddd;border-radius:var(--radius);overflow:hidden;margin-bottom:12px;} .acc-header{padding:14px;background:var(--soft-gray);cursor:pointer;font-weight:600;} .acc-body{padding:14px;display:none;background:#fff;line-height:1.6;}
+.edit-hint{font-size:12px;color:#6b7280;margin:6px 0 0 0}
+.editing{outline:2px dashed var(--gold); background:#fff8f1}
+
+.report-wrap{background:var(--beige); padding:18px; border-radius:12px;}
+.report{background:#fff; border:1px solid #eee; border-radius:12px; padding:18px;}
+.report-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;border-bottom:2px solid var(--gold);padding-bottom:10px;}
+.report-title{font-family:"Playfair Display",serif;font-size:24px;margin:0;}
+.report-meta{font-size:12px;color:#6b7280}
+.report-grid{display:grid;grid-template-columns:220px 1fr;gap:16px;}
+.report-photo{width:200px;height:200px;border-radius:999px;border:2px solid var(--gold);object-fit:cover;}
+.section{border-top:3px solid var(--beige);padding-top:10px;margin:14px 0;}
+.section h3{margin:0 0 8px 0;font-family:"Playfair Display",serif;}
+.section p{margin:6px 0;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.small{font-size:12px;color:#6b7280}
+
+@media print{
+  #gdprScreen,#splash,#progressWrap,.btn,#topNav{display:none!important;}
+  body{background:var(--beige);} 
+  #app{padding:0;margin:0;}
+  .report-wrap{padding:0;}
+}
+
+/***** Products & Admin Panel *****/
+.btn.btn-sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f1f1f1;color:#555;font-size:12px;margin-right:6px}
+.badge.gold{background:var(--rose);color:#3e2b22}
+.table{width:100%;border-collapse:collapse;border:1px solid #eee;border-radius:10px;overflow:hidden}
+.table th,.table td{padding:10px;border-bottom:1px solid #f0f0f0;font-size:14px;text-align:left}
+.table th{background:var(--soft-gray);font-weight:600}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:9998}
+.modal .card{width:min(980px,94vw);max-height:88vh;overflow:auto;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.modal .header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:12px}
+.modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:860px){.modal .grid{grid-template-columns:1fr}}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+input[type="search"]{padding:10px;border-radius:10px;border:1px solid #dcdcdc;width:260px}
+.badge.cat{background:var(--beige);border:1px solid #ecd6c5}
+.notice{font-size:12px;color:#6b7280}
+
+</style>
+</head>
+<body>
+<header class="nav" id="topNav">
+  <div class="inner">
+    <div class="brand">
+      <svg class="logo-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#c9a86a"/><stop offset="1" stop-color="#efd8d1"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="30" fill="none" stroke="url(#g)" stroke-width="3"/>
+        <path d="M32 12c8 6 12 12 12 20s-4 14-12 20c-8-6-12-12-12-20s4-14 12-20z" fill="url(#g)" opacity="0.35"/>
+      </svg>
+      <div>
+        <div class="wordmark" data-i18n="brand">DermAlidaBeauty</div>
+        <div class="underline"></div>
+      </div>
+    </div>
+    <div class="lang-switch">
+      <span data-i18n="language">Language</span>
+      <button data-lang="en" class="active">EN</button>
+      <button data-lang="de">DE</button>
+      <button data-lang="fr">FR</button>
+    
+ <button id="openCatalog" class="btn btn-secondary btn-sm" data-i18n="catalog">Catalog</button>
+ <button id="openAdmin" class="btn btn-secondary btn-sm" data-i18n="admin">Admin</button>
+</div>
+  </div>
+</header>
+
+<div id="gdprScreen">
+  <div id="gdprCard">
+    <h2 data-i18n="gdpr_title">Privacy & Consent</h2>
+    <p data-i18n="gdpr_desc">This application follows GDPR/DSGVO guidelines. Your data stays in this browser session.</p>
+    <label><input type="checkbox" id="gdprCheck"> <span data-i18n="gdpr_agree">I agree to the GDPR terms</span></label>
+    <button class="btn btn-primary" id="gdprContinue" style="margin-top:12px;" data-i18n="continue">Continue</button>
+  </div>
+</div>
+
+<div id="splash">
+  <div id="splashLogo">DermAlidaBeauty</div>
+  <div id="splashUnderline"></div>
+  <p style="font-size:20px;" data-i18n="tagline">Your Glow, Scientifically Personalized.</p>
+  <button class="btn btn-primary" id="startApp" data-i18n="start">Start</button>
+</div>
+
+<div id="app">
+  <div id="progressWrap"><div id="progressBar"><div id="progressFill"></div></div></div>
+
+  <div class="screen" id="scr1">
+    <h1 data-i18n="screen1_title">Create Profile</h1>
+    <div class="row row-2">
+      <div><label data-i18n="name">Name</label><input id="name"></div>
+      <div><label data-i18n="age">Age</label><input type="number" id="age" min="1" max="110"></div>
+      <div><label data-i18n="gender">Gender</label>
+        <select id="gender"><option value="female" data-i18n="female">Female</option><option value="male" data-i18n="male">Male</option><option value="other" data-i18n="other">Other</option></select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goTo(2)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr2">
+    <h2 data-i18n="screen2_title">Skin Characteristics</h2>
+    <div class="row row-2">
+      <div>
+        <label data-i18n="skin_type">Skin Type</label>
+        <select id="skinType">
+          <option value="normal" data-i18n="st_normal">Normal</option>
+          <option value="dry" data-i18n="st_dry">Dry</option>
+          <option value="oily" data-i18n="st_oily">Oily</option>
+          <option value="combined" data-i18n="st_combined">Combination</option>
+          <option value="sensitive" data-i18n="st_sensitive">Sensitive</option>
+        </select>
+      </div>
+      <div><label data-i18n="allergies">Allergies</label><input id="allergies" placeholder="None"></div>
+      <div><label data-i18n="budget">Budget</label>
+        <select id="budget"><option value="low" data-i18n="b_low">Budget</option><option value="medium" data-i18n="b_med">Standard</option><option value="high" data-i18n="b_high">Premium</option></select>
+      </div>
+    </div>
+    <button class="btn btn-secondary" onclick="goTo(1)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="goTo(3)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr3">
+    <h2 data-i18n="screen3_title">Your Priorities</h2>
+    <div class="row row-3">
+      <div><label data-i18n="priority1">Priority 1</label><input id="priority1" placeholder="Acne"></div>
+      <div><label data-i18n="priority2">Priority 2</label><input id="priority2" placeholder="Dark spots"></div>
+      <div><label data-i18n="priority3">Priority 3</label><input id="priority3" placeholder="Fine lines"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="goTo(2)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="goTo(4)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr4">
+    <h2 data-i18n="screen4_title">Current Routine</h2>
+    <div class="row row-2">
+      <div><label data-i18n="morning">Morning</label><textarea id="routineMorning" rows="4"></textarea></div>
+      <div><label data-i18n="evening">Evening</label><textarea id="routineEvening" rows="4"></textarea></div>
+      <div><label data-i18n="weekly">Weekly</label><textarea id="routineWeekly" rows="3"></textarea></div>
+    </div>
+    <button class="btn btn-secondary" onclick="goTo(3)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="goTo(5)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr5">
+    <h2 data-i18n="screen5_title">Face Photo</h2>
+    <div id="cameraFrame">
+      <div id="cameraCircle">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <img id="photoPreview" alt="Preview" />
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" id="startCam" data-i18n="start_cam">Start Camera</button>
+        <button class="btn btn-primary" id="capture" data-i18n="capture">Capture</button>
+        <label class="btn btn-secondary" for="uploadImg" data-i18n="upload">Upload</label>
+        <input id="uploadImg" type="file" accept="image/*" style="display:none;">
+      </div>
+      <div id="lightWarning" data-i18n="light_low">Lighting is too low</div>
+    </div>
+    <button class="btn btn-secondary" onclick="goTo(4)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="goTo(6)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr6">
+    <h2 data-i18n="screen6_title">AI Prompt</h2>
+    <p data-i18n="prompt_info">This prompt produces a one‑page report with AM/PM/Weekly routines and a 4‑week plan. It includes photo analysis and suggested actives.</p>
+    <textarea id="promptBox" rows="10"></textarea>
+    <button class="btn btn-secondary" onclick="copyPrompt()" data-i18n="copy_prompt">Copy Prompt</button>
+
+    <h3 data-i18n="paste_output">Paste AI Output</h3>
+    <textarea id="aiOutput" rows="10" placeholder="Paste the model's response here..."></textarea>
+
+    <button class="btn btn-secondary" onclick="goTo(5)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="processAI()" data-i18n="process">Process</button>
+  </div>
+
+  <div class="screen" id="scr7">
+    <h2 data-i18n="screen7_title">Results (click to edit)</h2>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)" data-i18n="sum">Skin Analysis Summary</div>
+      <div class="acc-body editable" id="resSummary" data-key="resSummary" tabindex="0">(Will be filled after Process)</div>
+      <div class="edit-hint" data-i18n="edit_hint">Click to edit. Changes are saved automatically.</div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)" data-i18n="am">Morning Routine</div>
+      <div class="acc-body editable" id="resMorning" data-key="resMorning" tabindex="0"></div>
+      <div class="edit-hint" data-i18n="edit_hint">Click to edit. Changes are saved automatically.</div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)" data-i18n="pm">Evening Routine</div>
+      <div class="acc-body editable" id="resEvening" data-key="resEvening" tabindex="0"></div>
+      <div class="edit-hint" data-i18n="edit_hint">Click to edit. Changes are saved automatically.</div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)" data-i18n="wk4">4‑Week Plan</div>
+      <div class="acc-body editable" id="resPlan" data-key="resPlan" tabindex="0"></div>
+      <div class="edit-hint" data-i18n="edit_hint">Click to edit. Changes are saved automatically.</div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-header" onclick="toggleAcc(this)" data-i18n="products">Product Recommendations</div>
+      <div class="acc-body editable" id="resProducts" data-key="resProducts" tabindex="0"></div>
+  <div style="display:flex;gap:8px;margin:6px 0 8px 0;">
+    <button class="btn btn-secondary btn-sm" id="autoFillProducts" data-i18n="autofill_products">Auto-fill from Database</button>
+  </div>
+      <div class="edit-hint" data-i18n="edit_hint">Click to edit. Changes are saved automatically.</div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="goTo(6)" data-i18n="back">Back</button>
+    <button class="btn btn-primary" onclick="goTo(8)" data-i18n="next">Next</button>
+  </div>
+
+  <div class="screen" id="scr8">
+    <div class="report-wrap">
+      <div class="report" id="reportArea"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="btn btn-primary" onclick="window.print()" data-i18n="print_pdf">Print / Save PDF</button>
+      <button class="btn btn-secondary" onclick="goTo(7)" data-i18n="back">Back</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// -------------------- Globals & Utilities --------------------
+let current=1,total=8; 
+const $ = (id)=>document.getElementById(id);
+const qs = (sel,ctx=document)=>ctx.querySelector(sel);
+const qsa = (sel,ctx=document)=>Array.from(ctx.querySelectorAll(sel));
+
+// -------------------- i18n dictionaries --------------------
+const I18N = {
+  en: {brand:"DermAlidaBeauty", language:"Language", gdpr_title:"Privacy & Consent", gdpr_desc:"This application follows GDPR/DSGVO guidelines. Your data stays in this browser session.", gdpr_agree:"I agree to the GDPR terms", continue:"Continue", tagline:"Your Glow, Scientifically Personalized.", start:"Start", next:"Next", back:"Back", screen1_title:"Create Profile", name:"Name", age:"Age", gender:"Gender", female:"Female", male:"Male", other:"Other", screen2_title:"Skin Characteristics", skin_type:"Skin Type", st_normal:"Normal", st_dry:"Dry", st_oily:"Oily", st_combined:"Combination", st_sensitive:"Sensitive", allergies:"Allergies", budget:"Budget", b_low:"Budget", b_med:"Standard", b_high:"Premium", screen3_title:"Your Priorities", priority1:"Priority 1", priority2:"Priority 2", priority3:"Priority 3", screen4_title:"Current Routine", morning:"Morning", evening:"Evening", weekly:"Weekly", screen5_title:"Face Photo", start_cam:"Start Camera", capture:"Capture", upload:"Upload", light_low:"Lighting is too low", screen6_title:"AI Prompt", prompt_info:"This prompt produces a one‑page report with AM/PM/Weekly routines and a 4‑week plan. It includes photo analysis and suggested actives.", copy_prompt:"Copy Prompt", paste_output:"Paste AI Output", process:"Process", screen7_title:"Results (click to edit)", edit_hint:"Click to edit. Changes are saved automatically.", sum:"Skin Analysis Summary", am:"Morning Routine", pm:"Evening Routine", wk4:"4‑Week Plan", products:"Product Recommendations", print_pdf:"Print / Save PDF", report_title:"DermAlidaBeauty – Personalized Skin Report" , catalog:"Catalog", admin:"Admin", catalog_title:"Product Catalog", admin_title:"Product Admin", import_json:"Import JSON", export_json:"Export JSON", autofill_products:"Auto-fill from Database", gdpr_db_note:"Note: Stored locally in your browser (IndexedDB). No server involved." },
+  de: {brand:"DermAlidaBeauty", language:"Sprache", gdpr_title:"Datenschutz & Einwilligung", gdpr_desc:"Diese Anwendung folgt DSGVO-Richtlinien. Ihre Daten bleiben in dieser Browsersitzung.", gdpr_agree:"Ich stimme den DSGVO-Bedingungen zu", continue:"Weiter", tagline:"Ihr Glow – wissenschaftlich personalisiert.", start:"Start", next:"Weiter", back:"Zurück", screen1_title:"Profil erstellen", name:"Name", age:"Alter", gender:"Geschlecht", female:"Weiblich", male:"Männlich", other:"Divers", screen2_title:"Hautmerkmale", skin_type:"Hauttyp", st_normal:"Normal", st_dry:"Trocken", st_oily:"Fettig", st_combined:"Mischhaut", st_sensitive:"Sensibel", allergies:"Allergien", budget:"Budget", b_low:"Budget", b_med:"Standard", b_high:"Premium", screen3_title:"Ihre Prioritäten", priority1:"Priorität 1", priority2:"Priorität 2", priority3:"Priorität 3", screen4_title:"Aktuelle Routine", morning:"Morgens", evening:"Abends", weekly:"Wöchentlich", screen5_title:"Gesichtsfoto", start_cam:"Kamera starten", capture:"Aufnehmen", upload:"Hochladen", light_low:"Beleuchtung ist zu gering", screen6_title:"AI‑Prompt", prompt_info:"Dieser Prompt erzeugt einen Einseiter mit AM/PM/Wochen‑Routine und einem 4‑Wochen‑Plan. Enthält Fotoanalyse und Wirkstoffvorschläge.", copy_prompt:"Prompt kopieren", paste_output:"KI‑Ausgabe einfügen", process:"Verarbeiten", screen7_title:"Ergebnisse (zum Bearbeiten klicken)", edit_hint:"Zum Bearbeiten klicken. Änderungen werden automatisch gespeichert.", sum:"Hautanalyse – Zusammenfassung", am:"Morgenroutine", pm:"Abendroutine", wk4:"4‑Wochen‑Plan", products:"Produktempfehlungen", print_pdf:"Drucken / als PDF speichern", report_title:"DermAlidaBeauty – Personalisierter Hautreport" , catalog:"Katalog", admin:"Admin", catalog_title:"Produktkatalog", admin_title:"Produktverwaltung", import_json:"JSON importieren", export_json:"JSON exportieren", autofill_products:"Aus Datenbank befüllen", gdpr_db_note:"Hinweis: Lokal im Browser gespeichert (IndexedDB). Kein Server." },
+  fr: {brand:"DermAlidaBeauty", language:"Langue", gdpr_title:"Confidentialité & Consentement", gdpr_desc:"Cette application respecte le RGPD. Vos données restent dans cette session du navigateur.", gdpr_agree:"J’accepte les conditions RGPD", continue:"Continuer", tagline:"Votre éclat, personnalisé scientifiquement.", start:"Démarrer", next:"Suivant", back:"Retour", screen1_title:"Créer le profil", name:"Nom", age:"Âge", gender:"Sexe", female:"Femme", male:"Homme", other:"Autre", screen2_title:"Caractéristiques de la peau", skin_type:"Type de peau", st_normal:"Normale", st_dry:"Sèche", st_oily:"Grasse", st_combined:"Mixte", st_sensitive:"Sensible", allergies:"Allergies", budget:"Budget", b_low:"Économique", b_med:"Standard", b_high:"Premium", screen3_title:"Vos priorités", priority1:"Priorité 1", priority2:"Priorité 2", priority3:"Priorité 3", screen4_title:"Routine actuelle", morning:"Matin", evening:"Soir", weekly:"Hebdomadaire", screen5_title:"Photo du visage", start_cam:"Démarrer la caméra", capture:"Capturer", upload:"Téléverser", light_low:"Éclairage insuffisant", screen6_title:"Prompt IA", prompt_info:"Ce prompt génère un rapport d’une page avec routines AM/PM/Hebdo et un plan de 4 semaines. Inclut l’analyse photo et les actifs suggérés.", copy_prompt:"Copier le prompt", paste_output:"Coller la réponse de l’IA", process:"Traiter", screen7_title:"Résultats (cliquer pour modifier)", edit_hint:"Cliquez pour modifier. Les changements sont enregistrés automatiquement.", sum:"Résumé de l’analyse cutanée", am:"Routine du matin", pm:"Routine du soir", wk4:"Plan sur 4 semaines", products:"Recommandations produits", print_pdf:"Imprimer / Enregistrer en PDF", report_title:"DermAlidaBeauty – Rapport cutané personnalisé" , catalog:"Catalogue", admin:"Admin", catalog_title:"Catalogue produits", admin_title:"Administration des produits", import_json:"Importer JSON", export_json:"Exporter JSON", autofill_products:"Remplir depuis la base", gdpr_db_note:"Remarque : Stocké localement dans votre navigateur (IndexedDB). Aucun serveur." }
+};
+let currentLang='en';
+
+function applyI18n(){
+  qsa('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(I18N[currentLang] && I18N[currentLang][key]){
+      if(el.placeholder!==undefined && el.tagName==='INPUT') el.placeholder=I18N[currentLang][key];
+      else el.textContent = I18N[currentLang][key];
+    }
+  });
+  qsa('.lang-switch button').forEach(btn=>btn.classList.toggle('active', btn.dataset.lang===currentLang));
+  // Rebuild report if visible
+  if(current===8) buildReport();
+}
+qsa('.lang-switch button').forEach(btn=>btn.addEventListener('click',()=>{currentLang=btn.dataset.lang; applyI18n(); translateResults(); }));
+
+// -------------------- GDPR & Splash --------------------
+$('gdprContinue').onclick=()=>{ if(!$('gdprCheck').checked){ alert('Please confirm GDPR to proceed.'); return; } $('gdprScreen').style.display='none'; $('splash').style.display='flex'; };
+$('startApp').onclick=()=>{ $('splash').style.display='none'; $('app').style.display='block'; showScreen(1); };
+
+function goTo(n){ current=n; showScreen(n); if(n===6) ensurePrompt(); if(n===8) buildReport(); }
+function showScreen(n){ qsa('.screen').forEach(s=>s.style.display='none'); $('scr'+n).style.display='block'; updateProgress(); }
+function updateProgress(){ $('progressFill').style.width=((current-1)/(total-1))*100+'%'; }
+
+// -------------------- Camera + Simulated Analysis --------------------
+let stream; const video=$('video'); const canvas=$('canvas'); const ctx=canvas.getContext('2d'); const preview=$('photoPreview');
+$('startCam').onclick=async()=>{ try{ stream = await navigator.mediaDevices.getUserMedia({ video:true }); video.srcObject=stream; video.play(); preview.style.display='none'; video.style.display='block'; }catch(e){ alert('Camera not available. You can upload a photo instead.'); } };
+$('capture').onclick=()=>{ if(!(video && (video.videoWidth>0))){ alert('Start camera first or upload a photo.'); return; } canvas.width=video.videoWidth; canvas.height=video.videoHeight; ctx.drawImage(video,0,0); const b=detectBrightness(); $('lightWarning').style.display = b<80 ? 'block':'none'; const data=canvas.toDataURL('image/png'); sessionStorage.setItem('clientPhoto', data); preview.src=data; preview.style.display='block'; video.style.display='none'; };
+$('uploadImg').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=(ev)=>{ const data=ev.target.result; sessionStorage.setItem('clientPhoto', data); preview.src=data; preview.style.display='block'; video.style.display='none'; }; reader.readAsDataURL(f); };
+function detectBrightness(){ const w=canvas.width,h=canvas.height; if(!w||!h) return 255; const d=ctx.getImageData(0,0,w,h).data; let sum=0; for(let i=0;i<d.length;i+=4){ sum += (d[i]+d[i+1]+d[i+2])/3; } return sum/(w*h); }
+
+// Simulated facial analysis: soft cosmetic tone
+function simulatedFaceAnalysis(){
+  // Use canvas pixels if available else heuristics
+  const w=canvas.width,h=canvas.height; let redness=0, brightness=0, count=0, variance=0;
+  if(w&&h){
+    const d=ctx.getImageData(0,0,w,h).data; let brs=[];
+    for(let i=0;i<d.length;i+=16){ // sample 1/4 of pixels
+      const r=d[i], g=d[i+1], b=d[i+2]; const lum=0.2126*r+0.7152*g+0.0722*b; brightness+=lum; redness+=Math.max(0, r-g); brs.push(lum); count++; }
+    brightness/=count; redness/=count; const mean=brightness; variance=brs.reduce((a,v)=>a+(v-mean)*(v-mean),0)/brs.length;
+  } else {
+    brightness=120; redness=8; variance=50; // default mild
+  }
+  const cues=[];
+  if(brightness<85) cues.push('soft overall dimness suggesting mild dehydration');
+  if(brightness>160) cues.push('a light reflective finish that may indicate surface oil in the T‑zone');
+  if(redness>25) cues.push('gentle cheek redness');
+  if(variance>120) cues.push('noticeable texture around the central face'); else cues.push('a generally smooth texture with a few visible pores');
+  if(cues.length===0) cues.push('balanced tone and texture');
+  return `Your photo shows ${cues.join(', ')}.`;
+}
+
+// -------------------- Autosuggest Actives --------------------
+function suggestActives(){
+  const type=$('skinType').value; const pr=[ $('priority1').value, $('priority2').value, $('priority3').value ].join(' ').toLowerCase();
+  const picks=new Set();
+  // base on skin type
+  if(type==='dry'){ picks.add('ceramides'); picks.add('panthenol'); picks.add('hyaluronic acid'); }
+  if(type==='oily'){ picks.add('niacinamide'); picks.add('BHA (salicylic acid)'); }
+  if(type==='sensitive'){ picks.add('centella asiatica'); picks.add('panthenol'); }
+  if(type==='combined'){ picks.add('niacinamide'); picks.add('lightweight moisturizers'); }
+  if(type==='normal'){ picks.add('antioxidants (vitamin C)'); }
+  // priorities
+  if(pr.includes('acne')){ picks.add('azelaic acid (10%)'); picks.add('BHA (salicylic acid)'); picks.add('niacinamide (2–5%)'); }
+  if(pr.includes('dark')||pr.includes('spot')){ picks.add('vitamin C (10–15%)'); picks.add('alpha arbutin'); }
+  if(pr.includes('line')||pr.includes('aging')||pr.includes('anti')){ picks.add('retinal or retinol'); picks.add('peptides'); }
+  return Array.from(picks).join(', ');
+}
+
+// -------------------- Prompt Generation (merged summary first) --------------------
+function ensurePrompt(){
+  const analysis = simulatedFaceAnalysis();
+  const actives = suggestActives();
+  const prompt = `You are a senior skin expert. Create a SINGLE‑PAGE professional report in plain text with the following sections: \n\nSkin Analysis Summary:\n${analysis}\nClient context: Name: ${$('name').value}; Age: ${$('age').value}; Gender: ${$('gender').value}; Skin Type: ${$('skinType').value}; Allergies: ${$('allergies').value||'None'}; Budget: ${$('budget').value}. Priorities: ${$('priority1').value||'-'}, ${$('priority2').value||'-'}, ${$('priority3').value||'-'}.\n\nMorning Routine:\n- steps with actives and short purpose\nEvening Routine:\n- steps with actives and short purpose\nWeekly:\n- optional treatments\n\n4-Week Plan:\n- Week 1, Week 2, Week 3, Week 4 (progressive, gentle, clear frequency)\n\nProduct Recommendations:\n- grouped by Cleanser / Serum / Moisturizer / SPF / Treatment\n\nRecommended actives for this profile: ${actives}. Avoid emojis and keep sentences clean.`;
+  $('promptBox').value = prompt;
+}
+function copyPrompt(){ navigator.clipboard.writeText($('promptBox').value); alert('Prompt copied.'); }
+
+// -------------------- AI Text Processing --------------------
+function processAI(){
+  const raw = $('aiOutput').value || '';
+  const cleaned = autoFormat(raw);
+  const sections = splitSections(cleaned);
+  if(!sections.plan || sections.plan.trim()===''){
+    sections.plan = autoPlan(sections.summary, sections.morning, sections.evening, sections.weekly, $('skinType').value, [ $('priority1').value, $('priority2').value, $('priority3').value ]);
+  }
+  setEditable('resSummary', sections.summary);
+  setEditable('resMorning', sections.morning);
+  setEditable('resEvening', sections.evening);
+  setEditable('resPlan', sections.plan);
+  setEditable('resProducts', sections.products);
+  goTo(7);
+}
+
+function autoFormat(text){
+  if(!text) return '';
+  let t = text
+    .replace(/[\u2705\u2714\u274C\u26A0\u2728\uFE0F\uD83D-\uDEFF\u2600-\u27BF\u25CF\u2022]/g,'') // remove emojis/bullets
+    .replace(/\r\n|\r/g,'\n');
+  // Normalize headings
+  const heads = [
+    {p:/\n?\s*(skin analysis summary|summary)\s*:?/ig,r:'\nSkin Analysis Summary:\n'},
+    {p:/\n?\s*(morning routine|am routine|morning)\s*:?/ig,r:'\nMorning Routine:\n'},
+    {p:/\n?\s*(evening routine|pm routine|night|night routine)\s*:?/ig,r:'\nEvening Routine:\n'},
+    {p:/\n?\s*(weekly( routine)?|as-needed)\s*:?/ig,r:'\nWeekly:\n'},
+    {p:/\n?\s*(4[- ]?week plan|four[- ]?week plan|week\s*1)\s*:?/ig,r:'\n4-Week Plan:\n'},
+    {p:/\n?\s*(product recommendations|products|recommended products)\s*:?/ig,r:'\nProduct Recommendations:\n'}
+  ];
+  heads.forEach(h=>{ t = t.replace(h.p, h.r); });
+  // Fix glued Capitals (e.g., SummaryYour)
+  t = t.replace(/([a-z])([A-Z])/g,'$1. $2');
+  // Collapse multiple spaces
+  t = t.replace(/\s{2,}/g,' ');
+  // Ensure line breaks after headings
+  t = t.replace(/(Skin Analysis Summary:|Morning Routine:|Evening Routine:|Weekly:|4-Week Plan:|Product Recommendations:)/g,'\n$1\n');
+  return t.trim();
+}
+
+function splitSections(t){
+  const map = {summary:'', morning:'', evening:'', weekly:'', plan:'', products:''};
+  const parts = t.split(/\n(?=Skin Analysis Summary:|Morning Routine:|Evening Routine:|Weekly:|4-Week Plan:|Product Recommendations:)/g);
+  parts.forEach(b=>{
+    const [head,...rest] = b.split(':');
+    const body = rest.join(':').trim();
+    if(/Skin Analysis Summary/i.test(head)) map.summary = toParagraphs(body);
+    else if(/Morning Routine/i.test(head)) map.morning = toParagraphs(body);
+    else if(/Evening Routine/i.test(head)) map.evening = toParagraphs(body);
+    else if(/^Weekly/i.test(head)) map.weekly = toParagraphs(body);
+    else if(/4-Week Plan/i.test(head)) map.plan = toParagraphs(body);
+    else if(/Product Recommendations/i.test(head)) map.products = toParagraphs(body);
+  });
+  if(Object.values(map).every(v=>!v)) map.summary = toParagraphs(t);
+  // Merge simulated analysis at beginning of summary if not already present
+  const analysis = simulatedFaceAnalysis();
+  if(map.summary) map.summary = '<p>'+analysis+'</p>'+map.summary; else map.summary = '<p>'+analysis+'</p>';
+  return map;
+}
+
+function toParagraphs(s){
+  if(!s) return '';
+  const parts = s
+    .replace(/\n-\s*/g, '\n')
+    .replace(/\n\d+\.?\s*/g, '\n')
+    .split(/\n+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+  return parts.map(p=>`<p>${p}</p>`).join('');
+}
+
+function autoPlan(summary, am, pm, weekly, skinType, priorities){
+  const pr = (priorities||[]).filter(Boolean).map(x=>x.toLowerCase());
+  const acne = pr.some(x=>x.includes('acne'));
+  const dark = pr.some(x=>x.includes('dark')) || pr.some(x=>x.includes('spot'));
+  const aging = pr.some(x=>x.includes('line'))||pr.some(x=>x.includes('aging'))||pr.some(x=>x.includes('anti'));
+  const activesAM = acne? 'niacinamide (2–5%) or azelaic acid (10%)' : dark? 'vitamin C (10–15%) or azelaic acid (10%)' : 'antioxidant serum (e.g., vitamin C 10–15%)';
+  const activesPM = acne? 'retinoid 2–3x/week; BHA 1–2x/week' : dark? 'retinoid 2–3x/week; AHA 1–2x/week' : aging? 'retinal 2–3x/week; peptides nightly' : 'retinoid 2–3x/week; gentle exfoliation 1x/week';
+  return [
+    `<h4>Week 1 — Repair & Reset</h4><p>Focus on barrier support and tolerance building. Use a gentle cleanser, ${skinType==='dry'?'rich moisturizer':'balanced moisturizer'}, and daily SPF. Night: bland routine (no strong actives for first 3–4 nights).</p>` ,
+    `<h4>Week 2 — Introduce Actives</h4><p>AM: introduce ${activesAM} on alternate mornings if tolerated. PM: introduce ${activesPM}. Keep moisturizer appropriate for ${skinType} skin.</p>` ,
+    `<h4>Week 3 — Build & Balance</h4><p>Increase actives frequency if no irritation: retinoid up to every other night; brightening/anti-inflammatory serum most mornings. Add weekly mask or treatment as needed.</p>` ,
+    `<h4>Week 4 — Full Cycle & Review</h4><p>Maintain the best-tolerated frequency from Week 3. Review skin response versus priorities (${(priorities||[]).filter(Boolean).join(' • ')||'your goals'}). Plan next month’s adjustments.</p>`
+  ].join('');
+}
+
+// -------------------- Editable Results --------------------
+function setEditable(id, html){ const el=$(id); el.innerHTML = html || ''; if(el.parentElement) el.parentElement.style.display='block'; saveSection(id, el.innerHTML); }
+['resSummary','resMorning','resEvening','resPlan','resProducts'].forEach(key=>{
+  const el = document.getElementById(key);
+  if(!el) return;
+  el.addEventListener('click',()=>{ el.contentEditable = 'true'; el.classList.add('editing'); el.focus(); });
+  el.addEventListener('blur',()=>{ el.contentEditable = 'false'; el.classList.remove('editing'); saveSection(key, el.innerHTML); });
+});
+function saveSection(k, html){ try{ sessionStorage.setItem(k, html); }catch(e){} }
+
+// -------------------- Report Builder --------------------
+function buildReport(){
+  const nameV=$('name').value||'-'; const ageV=$('age').value||'-'; const genderV=$('gender').value||'-';
+  const skinV=$('skinType').value||'-'; const allergiesV=$('allergies').value||'-'; const budgetV=$('budget').value||'-';
+  const p1=$('priority1').value||'-', p2=$('priority2').value||'-', p3=$('priority3').value||'-';
+  const photo=sessionStorage.getItem('clientPhoto'); const today=new Date().toLocaleDateString();
+  const sSummary = sessionStorage.getItem('resSummary') || $('resSummary').innerHTML;
+  const sMorning = sessionStorage.getItem('resMorning') || $('resMorning').innerHTML;
+  const sEvening = sessionStorage.getItem('resEvening') || $('resEvening').innerHTML;
+  const sPlan    = sessionStorage.getItem('resPlan')    || $('resPlan').innerHTML;
+  const sProd    = sessionStorage.getItem('resProducts')|| $('resProducts').innerHTML;
+
+  const report = `
+    <div class="report-header">
+      <svg class="logo-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:34px;height:34px;">
+        <defs><linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#c9a86a"/><stop offset="1" stop-color="#efd8d1"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="30" fill="none" stroke="url(#g2)" stroke-width="3"/>
+        <path d="M32 12c8 6 12 12 12 20s-4 14-12 20c-8-6-12-12-12-20s4-14 12-20z" fill="url(#g2)" opacity="0.35"/>
+      </svg>
+      <div>
+        <h1 class="report-title" data-i18n="report_title">${I18N[currentLang].report_title}</h1>
+        <div class="report-meta">${today} • ${nameV}</div>
+      </div>
+    </div>
+    <div class="report-grid">
+      <div>
+        ${photo ? `<img class="report-photo" src="${photo}" alt="Client Photo"/>` : `<div class="report-photo" style="display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#888;">No Photo</div>`}
+      </div>
+      <div>
+        <div class="section two-col">
+          <div>
+            <strong>${I18N[currentLang].age}:</strong> ${ageV}<br>
+            <strong>${I18N[currentLang].gender}:</strong> ${genderV}<br>
+            <strong>${I18N[currentLang].skin_type}:</strong> ${skinV}
+          </div>
+          <div>
+            <strong>${I18N[currentLang].allergies}:</strong> ${allergiesV || '—'}<br>
+            <strong>${I18N[currentLang].budget}:</strong> ${budgetV}<br>
+            <strong>${I18N[currentLang].priority1}/${I18N[currentLang].priority2}/${I18N[currentLang].priority3}:</strong> ${[p1,p2,p3].filter(Boolean).join(' • ')}
+          </div>
+        </div>
+        <div class="section">
+          <h3>${I18N[currentLang].sum}</h3>
+          ${sSummary || '<p>(Add summary)</p>'}
+        </div>
+        <div class="section">
+          <h3>${I18N[currentLang].am}</h3>
+          ${sMorning || '<p>(Add morning routine)</p>'}
+        </div>
+        <div class="section">
+          <h3>${I18N[currentLang].pm}</h3>
+          ${sEvening || '<p>(Add evening routine)</p>'}
+        </div>
+        <div class="section">
+          <h3>${I18N[currentLang].wk4}</h3>
+          ${sPlan || '<p>(Add plan)</p>'}
+        </div>
+        <div class="section">
+          <h3>${I18N[currentLang].products}</h3>
+          ${sProd || '<p>(Add product recommendations)</p>'}
+        </div>
+      </div>
+    </div>`;
+  $('reportArea').innerHTML = report;
+}
+
+function toggleAcc(el){ const body=el.nextElementSibling; body.style.display = (body.style.display==='block')?'none':'block'; }
+
+// -------------------- Auto-Translate (simple dictionary-based) --------------------
+// Note: For offline use, we implement simple phrase replacement. Unknown phrases remain as-is.
+const LEX = {
+  en: {},
+  de: {
+    'Skin Analysis Summary':'Hautanalyse – Zusammenfassung','Morning Routine':'Morgenroutine','Evening Routine':'Abendroutine','Weekly':'Wöchentlich','4‑Week Plan':'4‑Wochen‑Plan','Product Recommendations':'Produktempfehlungen','Your photo shows':'Ihr Foto zeigt','gentle cheek redness':'sanfte Rötung der Wangen','a generally smooth texture with a few visible pores':'eine insgesamt glatte Textur mit einigen sichtbaren Poren'
+  },
+  fr: {
+    'Skin Analysis Summary':'Résumé de l’analyse cutanée','Morning Routine':'Routine du matin','Evening Routine':'Routine du soir','Weekly':'Hebdomadaire','4‑Week Plan':'Plan sur 4 semaines','Product Recommendations':'Recommandations produits','Your photo shows':'Votre photo montre','gentle cheek redness':'une légère rougeur des joues','a generally smooth texture with a few visible pores':'une texture globalement lisse avec quelques pores visibles'
+  }
+};
+
+function translateResults(){
+  if(currentLang==='en') return; // source assumed EN; keep simple
+  ['resSummary','resMorning','resEvening','resPlan','resProducts'].forEach(id=>{
+    const el=$(id); if(!el) return; el.innerHTML = naiveTranslateHTML(el.innerHTML, currentLang);
+  });
+  // Rebuild report header strings
+  applyI18n();
+}
+function naiveTranslateHTML(html, lang){
+  // very naive replacement using LEX
+  let out=html; const map=LEX[lang]||{}; Object.keys(map).forEach(k=>{ const re=new RegExp(k.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&'),'g'); out=out.replace(re, map[k]); }); return out;
+}
+
+// -------------------- Init --------------------
+applyI18n();
+</script>
+
+<!-- Catalog Modal -->
+<div id="catalogModal" class="modal" aria-hidden="true">
+  <div class="card">
+    <div class="header">
+      <h3 style="margin:0" data-i18n="catalog_title">Product Catalog</h3>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" id="closeCatalog">Close</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input id="catSearch" type="search" placeholder="Search name/actives..." />
+      <select id="catFilterCat">
+        <option value="">All categories</option>
+        <option>Cleanser</option><option>Serum</option><option>Moisturizer</option><option>SPF</option><option>Treatment</option>
+      </select>
+      <select id="catFilterSkin">
+        <option value="">All skin types</option>
+        <option value="normal">Normal</option><option value="dry">Dry</option><option value="oily">Oily</option><option value="combined">Combination</option><option value="sensitive">Sensitive</option>
+      </select>
+    </div>
+
+    <table class="table" id="catalogTable" aria-label="Catalog Table">
+      <thead>
+        <tr><th>Name</th><th>Brand</th><th>Category</th><th>Actives</th><th>Skin</th><th>Price</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="notice" data-i18n="gdpr_db_note">Note: Stored locally in your browser (IndexedDB). No server involved.</div>
+  </div>
+</div>
+
+<!-- Admin Modal -->
+<div id="adminModal" class="modal" aria-hidden="true">
+  <div class="card">
+    <div class="header">
+      <h3 style="margin:0" data-i18n="admin_title">Product Admin</h3>
+      <div style="display:flex;gap:8px;">
+        <label class="btn btn-secondary btn-sm" for="importJson" data-i18n="import_json">Import JSON</label>
+        <input id="importJson" type="file" accept="application/json" style="display:none">
+        <button class="btn btn-secondary btn-sm" id="exportJson" data-i18n="export_json">Export JSON</button>
+        <button class="btn btn-secondary btn-sm" id="closeAdmin">Close</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <h4 style="margin:6px 0;">New / Edit</h4>
+        <div class="row" style="gap:10px">
+          <input id="p_id" type="hidden">
+          <div><label>Name</label><input id="p_name" required></div>
+          <div><label>Brand</label><input id="p_brand"></div>
+          <div>
+            <label>Category</label>
+            <select id="p_category">
+              <option>Cleanser</option><option>Serum</option><option>Moisturizer</option><option>SPF</option><option>Treatment</option>
+            </select>
+          </div>
+          <div><label>Actives (comma)</label><input id="p_actives" placeholder="niacinamide, azelaic acid"></div>
+          <div><label>Skin Types (comma)</label><input id="p_skin" placeholder="dry, oily, sensitive"></div>
+          <div><label>Allergens (comma)</label><input id="p_allergens" placeholder="fragrance, essential oils"></div>
+          <div><label>Concerns (comma)</label><input id="p_concerns" placeholder="acne, dark spots, fine lines"></div>
+          <div><label>Price</label><input id="p_price" type="number" min="0" step="0.01" placeholder="19.99"></div>
+          <div><label>Currency</label><input id="p_currency" value="€"></div>
+          <div><label>URL</label><input id="p_url" placeholder="https://..."></div>
+          <div><label>Notes</label><input id="p_notes" placeholder="fragrance-free; alcohol-free"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-primary" id="saveProduct">Save</button>
+          <button class="btn btn-secondary" id="resetProduct">Reset</button>
+          <button class="btn btn-secondary" id="deleteProduct">Delete</button>
+        </div>
+        <div class="notice" style="margin-top:8px" data-i18n="gdpr_db_note">Note: Stored locally in your browser (IndexedDB). No server involved.</div>
+      </div>
+
+      <div>
+        <h4 style="margin:6px 0;">Products</h4>
+        <input id="adminSearch" type="search" placeholder="Search..." />
+        <table class="table" id="adminTable">
+          <thead>
+            <tr><th>Name</th><th>Brand</th><th>Category</th><th>Actives</th><th>Skin</th><th>Price</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ============================
+   Offline Products DB + Admin
+   ============================ */
+
+// --- Simple IndexedDB Helpers ---
+const ProductDB = {
+  db: null,
+  async open() {
+    if (this.db) return this.db;
+    const req = indexedDB.open('DermAlidaBeauty_DB', 1);
+    return await new Promise((resolve, reject) => {
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('products')) {
+          const os = db.createObjectStore('products', { keyPath: 'id', autoIncrement: true });
+          os.createIndex('name', 'name', { unique: false });
+          os.createIndex('category', 'category', { unique: false });
+          os.createIndex('actives', 'actives', { unique: false, multiEntry: true });
+          os.createIndex('skinTypes', 'skinTypes', { unique: false, multiEntry: true });
+        }
+      };
+      req.onsuccess = () => { this.db = req.result; resolve(this.db); };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  tx(store, mode='readonly'){ return this.db.transaction(store, mode).objectStore(store); },
+  async getAll() {
+    await this.open();
+    return await new Promise((resolve, reject) => {
+      const out = [];
+      const req = this.tx('products').openCursor();
+      req.onsuccess = e => {
+        const cur = e.target.result;
+        if (cur) { out.push(cur.value); cur.continue(); } else resolve(out);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async add(p){ await this.open(); return reqProm(this.tx('products','readwrite').add(p)); },
+  async put(p){ await this.open(); return reqProm(this.tx('products','readwrite').put(p)); },
+  async delete(id){ await this.open(); return reqProm(this.tx('products','readwrite').delete(id)); },
+  async clear(){ await this.open(); return reqProm(this.tx('products','readwrite').clear()); },
+};
+function reqProm(req){ return new Promise((res,rej)=>{ req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error); }); }
+
+// --- Seed minimal products on first run ---
+async function ensureSeed(){
+  const items = await ProductDB.getAll();
+  if (items.length) return;
+  const seed = [
+    { name:'Gentle Gel Cleanser', brand:'Generic', category:'Cleanser', actives:[], skinTypes:['normal','dry','oily','combined','sensitive'],
+      allergens:['fragrance'], concerns:['baseline'], price:9.99, currency:'€', url:'', notes:'fragrance-free' },
+    { name:'10% Azelaic Acid Serum', brand:'Generic', category:'Serum', actives:['azelaic acid'], skinTypes:['normal','dry','oily','combined','sensitive'],
+      allergens:[], concerns:['acne','dark spots','redness'], price:14.99, currency:'€', url:'', notes:'' },
+    { name:'5% Niacinamide Serum', brand:'Generic', category:'Serum', actives:['niacinamide'], skinTypes:['normal','dry','oily','combined','sensitive'],
+      allergens:[], concerns:['pores','shine','barrier'], price:10.99, currency:'€', url:'', notes:'' },
+    { name:'Ceramide Repair Moisturizer', brand:'Generic', category:'Moisturizer', actives:['ceramides','panthenol','hyaluronic acid'], skinTypes:['dry','normal','sensitive','combined'],
+      allergens:[], concerns:['barrier','dehydration'], price:16.50, currency:'€', url:'', notes:'rich but non-greasy' },
+    { name:'0.05% Retinal Night Cream', brand:'Generic', category:'Treatment', actives:['retinal','retinoid'], skinTypes:['normal','oily','combined'],
+      allergens:[], concerns:['fine lines','texture'], price:22.00, currency:'€', url:'', notes:'use 2–3x/week initially' },
+    { name:'2% Salicylic Acid Toner', brand:'Generic', category:'Treatment', actives:['salicylic acid','bha'], skinTypes:['oily','combined','normal'],
+      allergens:[], concerns:['acne','blackheads'], price:11.50, currency:'€', url:'', notes:'use 1–2x/week' },
+    { name:'Daily Mineral SPF 50', brand:'Generic', category:'SPF', actives:['zinc oxide','titanium dioxide'], skinTypes:['normal','oily','dry','combined','sensitive'],
+      allergens:[], concerns:['uv'], price:17.99, currency:'€', url:'', notes:'broad-spectrum' },
+  ];
+  for (const p of seed) await ProductDB.add(p);
+}
+
+// --- Render helpers ---
+function renderRow(p){
+  const act = (p.actives||[]).join(', ');
+  const sk  = (p.skinTypes||[]).join(', ');
+  return `<tr data-id="${p.id}">
+    <td>${esc(p.name)}</td>
+    <td>${esc(p.brand||'')}</td>
+    <td><span class="badge cat">${esc(p.category||'')}</span></td>
+    <td>${esc(act)}</td>
+    <td>${esc(sk)}</td>
+    <td>${fmtPrice(p)}</td>
+  </tr>`;
+}
+function fmtPrice(p){ return (p.price!=null? `${Number(p.price).toFixed(2)} ${p.currency||'€'}`:''); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
+
+// --- Catalog modal logic ---
+async function refreshCatalog(){
+  const q = $('catSearch').value.trim().toLowerCase();
+  const cat = $('catFilterCat').value;
+  const sk = $('catFilterSkin').value;
+  const all = await ProductDB.getAll();
+  const rows = all.filter(p=>{
+    if (cat && p.category!==cat) return false;
+    if (sk && !(p.skinTypes||[]).includes(sk)) return false;
+    if (!q) return true;
+    const hay = [
+      p.name,p.brand,p.category,(p.actives||[]).join(' '),(p.concerns||[]).join(' ')
+    ].join(' ').toLowerCase();
+    return hay.includes(q);
+  }).map(renderRow).join('');
+  $('catalogTable').querySelector('tbody').innerHTML = rows || `<tr><td colspan="6">No results</td></tr>`;
+}
+
+// --- Admin modal logic ---
+let editingId = null;
+async function refreshAdmin(){
+  const q = $('adminSearch').value.trim().toLowerCase();
+  const all = await ProductDB.getAll();
+  const rows = all.filter(p=>{
+    if (!q) return true;
+    const hay = [p.name,p.brand,p.category,(p.actives||[]).join(' '),(p.skinTypes||[]).join(' ')].join(' ').toLowerCase();
+    return hay.includes(q);
+  }).map(renderRow).join('');
+  const tbody = $('adminTable').querySelector('tbody');
+  tbody.innerHTML = rows || `<tr><td colspan="6">No products</td></tr>`;
+  // row click -> load into editor
+  tbody.querySelectorAll('tr[data-id]').forEach(tr=>{
+    tr.addEventListener('click', async ()=>{
+      const id = Number(tr.getAttribute('data-id'));
+      const all = await ProductDB.getAll();
+      const p = all.find(x=>x.id===id);
+      if(!p) return;
+      editingId = id;
+      $('p_id').value = id;
+      $('p_name').value = p.name||'';
+      $('p_brand').value = p.brand||'';
+      $('p_category').value = p.category||'Cleanser';
+      $('p_actives').value = (p.actives||[]).join(', ');
+      $('p_skin').value = (p.skinTypes||[]).join(', ');
+      $('p_allergens').value = (p.allergens||[]).join(', ');
+      $('p_concerns').value = (p.concerns||[]).join(', ');
+      $('p_price').value = p.price!=null? String(p.price):'';
+      $('p_currency').value = p.currency||'€';
+      $('p_url').value = p.url||'';
+      $('p_notes').value = p.notes||'';
+    });
+  });
+}
+function readForm(){
+  return {
+    id: editingId||undefined,
+    name: $('p_name').value.trim(),
+    brand: $('p_brand').value.trim(),
+    category: $('p_category').value,
+    actives: splitCSV($('p_actives').value),
+    skinTypes: splitCSV($('p_skin').value),
+    allergens: splitCSV($('p_allergens').value),
+    concerns: splitCSV($('p_concerns').value),
+    price: $('p_price').value? Number($('p_price').value):null,
+    currency: $('p_currency').value||'€',
+    url: $('p_url').value.trim(),
+    notes: $('p_notes').value.trim(),
+  };
+}
+function splitCSV(v){ return v.split(/[,;]+/).map(s=>s.trim()).filter(Boolean); }
+function resetForm(){
+  editingId = null; $('p_id').value='';
+  ['p_name','p_brand','p_actives','p_skin','p_allergens','p_concerns','p_price','p_currency','p_url','p_notes'].forEach(id=>$(id).value='');
+  $('p_category').value='Cleanser';
+}
+
+// --- Import/Export ---
+async function exportJSON(){
+  const data = await ProductDB.getAll();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'products.json'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+async function importJSON(file){
+  const text = await file.text();
+  const arr = JSON.parse(text);
+  await ProductDB.clear();
+  for (const p of arr){ delete p.id; await ProductDB.add(p); }
+  await refreshAdmin(); await refreshCatalog();
+}
+
+// --- Recommendations Auto-fill ---
+async function autoFillFromDB(){
+  const type = $('skinType').value;
+  const budget = $('budget').value; // low | medium | high
+  const allergies = splitCSV(($('allergies').value||'').toLowerCase());
+  const targets = (suggestActives()||'').toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+
+  const all = await ProductDB.getAll();
+  const band = (p)=> {
+    if (p.price==null) return 2;
+    if (budget==='low') return p.price<=15 ? 3:0;
+    if (budget==='medium') return (p.price>10 && p.price<=40) ? 3: (p.price<=10?2: (p.price>40?1:2));
+    if (budget==='high') return p.price>20 ? 3:2;
+    return 2;
+  };
+  const okAllergen = (p)=> !allergies.length || !overlap(allergies, (p.allergens||[]).map(x=>String(x).toLowerCase()));
+  const okSkin = (p)=> !type || (p.skinTypes||[]).includes(type);
+  const score = (p)=> {
+    const acts = (p.actives||[]).map(a=>a.toLowerCase());
+    const s1 = intersectCount(acts, targets);  // active match
+    const s2 = okSkin(p) ? 1 : 0;
+    const s3 = okAllergen(p) ? 1 : -2;         // penalize allergens
+    const s4 = band(p);                         // budget alignment
+    return s1*3 + s2 + s3 + s4;
+  };
+  const ranked = all
+    .filter(p=>okAllergen(p))
+    .map(p=>({p, sc:score(p)}))
+    .sort((a,b)=>b.sc-a.sc);
+
+  const wantedOrder = ['Cleanser','Serum','Moisturizer','SPF','Treatment'];
+  const pick = {}; for (const w of wantedOrder) pick[w]=[];
+  for (const {p} of ranked){ if (pick[p.category] && pick[p.category].length<2) pick[p.category].push(p); }
+
+  let html = '';
+  for (const w of wantedOrder){
+    const arr = pick[w]; if (!arr || !arr.length) continue;
+    html += `<p><strong>${w}:</strong></p>`;
+    for (const pr of arr){
+      const acts = (pr.actives||[]).join(', ');
+      const link = pr.url? ` — <a href="${esc(pr.url)}" target="_blank" rel="noopener">link</a>`:'';
+      html += `<p>• <em>${esc(pr.name)}</em> (${esc(pr.brand||'')}) — ${acts || 'gentle/neutral'} — ${fmtPrice(pr)}${link}<br><span class="small">${esc(pr.notes||'')}</span></p>`;
+    }
+  }
+  if (!html) html = `<p>(No matching products in database yet.)</p>`;
+
+  setEditable('resProducts', html);
+}
+
+// helpers
+function intersectCount(a,b){ const B=new Set(b); return a.filter(x=>B.has(x)).length; }
+function overlap(a,b){ const B=new Set(b); return a.some(x=>B.has(x)); }
+
+// --- Wire up UI events ---
+function bindProductUI(){
+  $('openCatalog').onclick = async ()=>{ await ProductDB.open(); await refreshCatalog(); $('catalogModal').style.display='flex'; };
+  $('closeCatalog').onclick = ()=>{ $('catalogModal').style.display='none'; };
+
+  $('openAdmin').onclick = async ()=>{ await ProductDB.open(); await ensureSeed(); await refreshAdmin(); $('adminModal').style.display='flex'; };
+  $('closeAdmin').onclick = ()=>{ $('adminModal').style.display='none'; };
+
+  ['catSearch','catFilterCat','catFilterSkin'].forEach(id=>$(id).addEventListener('input', refreshCatalog));
+  $('adminSearch').addEventListener('input', refreshAdmin);
+
+  $('saveProduct').onclick = async ()=>{
+    const p = readForm();
+    if (!p.name) { alert('Name required'); return; }
+    if (editingId) { p.id = editingId; await ProductDB.put(p); }
+    else await ProductDB.add(p);
+    await refreshAdmin(); resetForm();
+  };
+  $('resetProduct').onclick = ()=> resetForm();
+  $('deleteProduct').onclick = async ()=>{
+    if (!editingId) return;
+    await ProductDB.delete(editingId);
+    await refreshAdmin(); resetForm();
+  };
+
+  $('exportJson').onclick = exportJSON;
+  $('importJson').onchange = async (e)=>{ const f = e.target.files[0]; if (f) { await importJSON(f); e.target.value=''; }};
+
+  const btn = $('autoFillProducts');
+  if (btn) btn.onclick = autoFillFromDB;
+}
+
+window.addEventListener('load', async ()=>{
+  await ProductDB.open();
+  await ensureSeed();
+  bindProductUI();
+});
+</script>
+
+</body>
+</html>
